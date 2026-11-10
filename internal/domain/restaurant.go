@@ -1,20 +1,21 @@
 package domain
 
 import (
-	"uuid"
+	"time"
 )
 
 type Restaurant struct {
-	ID      string
-	Name    string
-	Address string
+	ID        int64
+	Name      string
+	Address   string
+	CreatedAt time.Time
 }
 
 func NewRestaurant(name, address string) Restaurant {
 
 	return Restaurant{
-		ID:      uuid.New().String(),
-		Name:    name,
-		Address: address,
+		Name:      name,
+		Address:   address,
+		CreatedAt: time.Now(),
 	}
 }

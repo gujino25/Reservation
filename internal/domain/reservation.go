@@ -5,6 +5,16 @@ import (
 	"uuid"
 )
 
+type ReservationStatus string
+
+const (
+	ReservationStatusConfirmed ReservationStatus = "confirmed"
+	ReservationStatusCancelled ReservationStatus = "cancelled"
+)
+const (
+	defaultReserveDuration = 2 * time.Hour
+)
+
 type Reservation struct {
 	ID           string
 	TableID      string
@@ -13,14 +23,10 @@ type Reservation struct {
 	CreatedAt    time.Time
 	StartsAt     time.Time
 	EndsAt       time.Time
-	Reserved     bool
+	Status       ReservationStatus
 }
 
-const (
-	defaultReserveDuration = 2 * time.Hour
-)
-
-func NewReservation(tableID, guestID string, startsAt time.Time, guests int) (Reservation, error) {
+func Create(tableID, guestID string, startsAt time.Time, guests int) (Reservation, error) {
 	if startsAt.Before(time.Now()) {
 		return Reservation{}, ErrReservationTime
 	}
@@ -37,6 +43,17 @@ func NewReservation(tableID, guestID string, startsAt time.Time, guests int) (Re
 		CreatedAt:    time.Now(),
 		StartsAt:     startsAt,
 		EndsAt:       endOfReservation,
-		Reserved:     false,
+		Status:       ReservationStatusConfirmed,
 	}, nil
+}
+
+func (r *Reservation) Cancel() error {
+	if r.Status == ReservationStatusCancelled {
+		return ErrReservationAlreadyCancelled
+	}
+	if !time.Now().Before(r.StartsAt) {
+		return ErrReservationAlreadyStarted
+	}
+	r.Status = ReservationStatusCancelled
+	return nil
 }
