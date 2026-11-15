@@ -10,4 +10,6 @@ var (
 	ErrReservationAlreadyCancelled = errors.New("reservation is already cancelled")
 	ErrReservationAlreadyStarted   = errors.New("reservation has already started")
 	ErrNotFound                    = errors.New("not found")
+	ErrAlreadyExists               = errors.New("already exists")
+	ErrTableBusy                   = errors.New("table is already booked for this time")
 )
