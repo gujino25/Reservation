@@ -1,15 +1,18 @@
 package domain
 
-import "uuid"
+import "time"
 
 type Guest struct {
-	ID   string
-	Name string
+	ID        int64
+	Name      string
+	Phone     string
+	CreatedAt time.Time
 }
 
-func NewGuest(name string) Guest {
+func NewGuest(name, phone string) Guest {
 	return Guest{
-		ID:   uuid.New().String(),
-		Name: name,
+		Name:      name,
+		Phone:     phone,
+		CreatedAt: time.Now(),
 	}
 }

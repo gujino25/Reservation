@@ -2,23 +2,23 @@ package domain
 
 import (
 	"time"
-	"uuid"
 )
 
 type ReservationStatus string
 
 const (
-	ReservationStatusConfirmed ReservationStatus = "confirmed"
+	ReservationStatusActive    ReservationStatus = "active"
 	ReservationStatusCancelled ReservationStatus = "cancelled"
+	ReservationStatusCompleted ReservationStatus = "completed"
 )
 const (
 	defaultReserveDuration = 2 * time.Hour
 )
 
 type Reservation struct {
-	ID           string
-	TableID      string
-	GuestID      string
+	ID           int64
+	TableID      int64
+	GuestID      int64
 	GuestsAmount int
 	CreatedAt    time.Time
 	StartsAt     time.Time
@@ -26,7 +26,7 @@ type Reservation struct {
 	Status       ReservationStatus
 }
 
-func Create(tableID, guestID string, startsAt time.Time, guests int) (Reservation, error) {
+func Create(tableID, guestID int64, startsAt time.Time, guests int) (Reservation, error) {
 	if startsAt.Before(time.Now()) {
 		return Reservation{}, ErrReservationTime
 	}
@@ -36,14 +36,13 @@ func Create(tableID, guestID string, startsAt time.Time, guests int) (Reservatio
 	endOfReservation := startsAt.Add(defaultReserveDuration)
 
 	return Reservation{
-		ID:           uuid.New().String(),
 		TableID:      tableID,
 		GuestID:      guestID,
 		GuestsAmount: guests,
 		CreatedAt:    time.Now(),
 		StartsAt:     startsAt,
 		EndsAt:       endOfReservation,
-		Status:       ReservationStatusConfirmed,
+		Status:       ReservationStatusActive,
 	}, nil
 }
 
