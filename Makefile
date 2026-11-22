@@ -3,10 +3,13 @@ include .env
 export
 endif
 
-.PHONY: build test test-integration migrate-up migrate-down check-env
+.PHONY: build run test test-integration migrate-up migrate-down check-env
 
 build:
 	go build ./...
+
+run:
+	go run ./cmd/api
 
 test:
 	go test ./...
@@ -18,7 +21,7 @@ check-env:
 	@test -n "$(DATABASE_URL)" || (echo "DATABASE_URL not set: copy .env.example to .env"; exit 1)
 
 migrate-up: check-env
-	migrate -path internal/migrations -database "$(DATABASE_URL)?sslmode=disable" up
+	migrate -path internal/migrations -database "$(DATABASE_URL)" up
 
 migrate-down: check-env
-	migrate -path internal/migrations -database "$(DATABASE_URL)?sslmode=disable" down 1
+	migrate -path internal/migrations -database "$(DATABASE_URL)" down 1

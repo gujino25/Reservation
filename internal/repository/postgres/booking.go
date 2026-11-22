@@ -2,7 +2,9 @@ package postgres
 
 import (
 	"context"
+	"errors"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"reservation/internal/domain"
@@ -56,6 +58,33 @@ func (r *BookingRepo) Update(ctx context.Context, b domain.Reservation) error {
 	}
 	if tag.RowsAffected() == 0 {
 		return domain.ErrNotFound
+	}
+	return nil
+}
+
+// Cancel changes the status only while the booking is still active. The
+// conditional update makes concurrent cancellation requests deterministic.
+func (r *BookingRepo) Cancel(ctx context.Context, id int64) error {
+	tag, err := r.pool.Exec(ctx,
+		`UPDATE bookings SET status = $2 WHERE id = $1 AND status = $3 AND starts_at > now()`,
+		id, domain.ReservationStatusCancelled, domain.ReservationStatusActive,
+	)
+	if err != nil {
+		return mapError(err)
+	}
+	if tag.RowsAffected() == 0 {
+		var status domain.ReservationStatus
+		var started bool
+		if err := r.pool.QueryRow(ctx, `SELECT status, starts_at <= now() FROM bookings WHERE id = $1`, id).Scan(&status, &started); err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return domain.ErrNotFound
+			}
+			return err
+		}
+		if started {
+			return domain.ErrReservationAlreadyStarted
+		}
+		return domain.ErrReservationAlreadyCancelled
 	}
 	return nil
 }

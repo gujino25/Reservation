@@ -12,4 +12,5 @@ var (
 	ErrNotFound                    = errors.New("not found")
 	ErrAlreadyExists               = errors.New("already exists")
 	ErrTableBusy                   = errors.New("table is already booked for this time")
+	ErrCapacityExceeded            = errors.New("guests amount exceeds table capacity")
 )
