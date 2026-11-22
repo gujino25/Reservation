@@ -130,3 +130,20 @@ func TestBookingRepo_UpdateNotFound(t *testing.T) {
 		t.Fatalf("want ErrNotFound, got %v", err)
 	}
 }
+
+func TestBookingRepo_TableNotFoundFK(t *testing.T) {
+	cleanup(t)
+	ctx := context.Background()
+	repo := postgres.NewBookingRepo(testPool)
+
+	guest, err := postgres.NewGuestRepo(testPool).Create(ctx, domain.NewGuest("Ivan", "+79000000001"))
+	if err != nil {
+		t.Fatalf("seed guest: %v", err)
+	}
+
+	// ссылка на стол, которого нет в базе
+	_, err = repo.Create(ctx, newBooking(999999, guest.ID, time.Now().Add(48*time.Hour)))
+	if !errors.Is(err, domain.ErrNotFound) {
+		t.Fatalf("FK violation: want ErrNotFound, got %v", err)
+	}
+}

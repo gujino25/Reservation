@@ -34,7 +34,9 @@ func Migrate(dsn string) error {
 	if err != nil {
 		return fmt.Errorf("migration source: %w", err)
 	}
-	m, err := migrate.NewWithSourceInstance("iofs", src, strings.Replace(dsn, "postgres://", "pgx5://", 1))
+	dsn = strings.TrimPrefix(dsn, "postgresql://")
+	dsn = strings.TrimPrefix(dsn, "postgres://")
+	m, err := migrate.NewWithSourceInstance("iofs", src, "pgx5://"+dsn)
 	if err != nil {
 		return fmt.Errorf("create migrator: %w", err)
 	}
@@ -56,6 +58,8 @@ func mapError(err error) error {
 			return fmt.Errorf("%w: constraint %s", domain.ErrAlreadyExists, pgErr.ConstraintName)
 		case "23P01": // exclusion_violation
 			return domain.ErrTableBusy
+		case "23503": // foreign_key_violation
+			return domain.ErrNotFound
 		}
 	}
 	if errors.Is(err, pgx.ErrNoRows) {
